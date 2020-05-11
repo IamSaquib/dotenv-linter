@@ -2,21 +2,21 @@ use crate::checks::Check;
 use crate::common::*;
 
 pub(crate) struct SpaceCharacterChecker {
-    template: String,
-    name: String,
+    name: &'static str,
+    template: &'static str,
 }
 
 impl SpaceCharacterChecker {
     fn message(&self) -> String {
-        return format!("{}: {}", self.name, self.template);
+        format!("{}: {}", self.name, self.template)
     }
 }
 
 impl Default for SpaceCharacterChecker {
     fn default() -> Self {
         Self {
-            name: String::from("SpaceCharacter"),
-            template: String::from("The line has spaces around equal sign"),
+            name: "SpaceCharacter",
+            template: "The line has spaces around equal sign",
         }
     }
 }
@@ -27,12 +27,15 @@ impl Check for SpaceCharacterChecker {
 
         if let [key, value] = &line_splitted[..] {
             if key.ends_with(' ') || value.starts_with(' ') {
-                let warning = Warning::new(line.clone(), self.message());
-                return Some(warning);
+                return Some(Warning::new(line.clone(), self.message()));
             }
         }
 
         None
+    }
+
+    fn name(&self) -> &str {
+        self.name
     }
 }
 

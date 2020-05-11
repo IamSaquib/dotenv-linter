@@ -12,6 +12,7 @@ mod unordered_key;
 // This trait is used for checks which needs to know of only a single line
 trait Check {
     fn run(&mut self, line: &LineEntry) -> Option<Warning>;
+    fn name(&self) -> &str;
 }
 
 // Checklist for checks which needs to know of only a single line
@@ -28,8 +29,10 @@ fn checklist() -> Vec<Box<dyn Check>> {
     ]
 }
 
-pub fn run(lines: Vec<LineEntry>) -> Vec<Warning> {
+pub fn run(lines: Vec<LineEntry>, skip_checks: &Vec<&str>) -> Vec<Warning> {
     let mut checks = checklist();
+    checks.retain(|c| !skip_checks.contains(&c.name()));
+
     let mut warnings: Vec<Warning> = Vec::new();
 
     for line in lines {
@@ -56,8 +59,9 @@ mod tests {
     fn run_with_empty_vec_test() {
         let empty: Vec<LineEntry> = Vec::new();
         let expected: Vec<Warning> = Vec::new();
+        let skip_checks: Vec<&str> = Vec::new();
 
-        assert_eq!(expected, run(empty));
+        assert_eq!(expected, run(empty, &skip_checks));
     }
 
     #[test]
@@ -70,8 +74,9 @@ mod tests {
 
         let lines: Vec<LineEntry> = vec![line];
         let expected: Vec<Warning> = Vec::new();
+        let skip_checks: Vec<&str> = Vec::new();
 
-        assert_eq!(expected, run(lines));
+        assert_eq!(expected, run(lines, &skip_checks));
     }
 
     #[test]
@@ -84,8 +89,9 @@ mod tests {
 
         let lines: Vec<LineEntry> = vec![line];
         let expected: Vec<Warning> = Vec::new();
+        let skip_checks: Vec<&str> = Vec::new();
 
-        assert_eq!(expected, run(lines));
+        assert_eq!(expected, run(lines, &skip_checks));
     }
 
     #[test]
@@ -98,8 +104,9 @@ mod tests {
 
         let lines: Vec<LineEntry> = vec![line];
         let expected: Vec<Warning> = Vec::new();
+        let skip_checks: Vec<&str> = Vec::new();
 
-        assert_eq!(expected, run(lines));
+        assert_eq!(expected, run(lines, &skip_checks));
     }
 
     #[test]
@@ -117,7 +124,45 @@ mod tests {
         );
         let lines: Vec<LineEntry> = vec![line];
         let expected: Vec<Warning> = vec![warning];
+        let skip_checks: Vec<&str> = Vec::new();
 
-        assert_eq!(expected, run(lines));
+        assert_eq!(expected, run(lines, &skip_checks));
+    }
+
+    #[test]
+    fn skip_all_checks() {
+        let line = LineEntry {
+            number: 1,
+            file_path: PathBuf::from(".env"),
+            raw_string: String::from("FOO"),
+        };
+        let lines: Vec<LineEntry> = vec![line];
+        let expected: Vec<Warning> = Vec::new();
+        let skip_checks: Vec<&str> = vec!["KeyWithoutValue"];
+
+        assert_eq!(expected, run(lines, &skip_checks));
+    }
+
+    #[test]
+    fn skip_one_check() {
+        let line1 = LineEntry {
+            number: 1,
+            file_path: PathBuf::from(".env"),
+            raw_string: String::from("FOO"),
+        };
+        let line2 = LineEntry {
+            number: 1,
+            file_path: PathBuf::from(".env"),
+            raw_string: String::from("1FOO"),
+        };
+        let warning = Warning::new(
+            line1.clone(),
+            String::from("LeadingCharacter: Invalid leading character detected"),
+        );
+        let lines: Vec<LineEntry> = vec![line1, line2];
+        let expected: Vec<Warning> = vec![warning];
+        let skip_checks: Vec<&str> = vec!["KeyWithoutValue"];
+
+        assert_eq!(expected, run(lines, &skip_checks));
     }
 }

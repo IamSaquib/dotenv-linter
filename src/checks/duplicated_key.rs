@@ -3,14 +3,15 @@ use crate::common::*;
 use std::collections::HashSet;
 
 pub(crate) struct DuplicatedKeyChecker {
-    name: String,
-    template: String,
+    name: &'static str,
     keys: HashSet<String>,
+    template: &'static str,
 }
 
 impl DuplicatedKeyChecker {
+    // https://doc.rust-lang.org/stable/alloc/string/struct.String.html#deref
     fn message(&self, key: &str) -> String {
-        return format!("{}: {}", self.name, self.template.replace("{}", &key));
+        format!("{}: {}", self.name, self.template.replace("{}", &key))
     }
 }
 
@@ -18,8 +19,8 @@ impl Default for DuplicatedKeyChecker {
     fn default() -> Self {
         Self {
             keys: HashSet::new(),
-            name: String::from("DuplicatedKey"),
-            template: String::from("The {} key is duplicated"),
+            name: "DuplicatedKey",
+            template: "The {} key is duplicated",
         }
     }
 }
@@ -34,6 +35,10 @@ impl Check for DuplicatedKeyChecker {
 
         self.keys.insert(key);
         None
+    }
+
+    fn name(&self) -> &str {
+        self.name
     }
 }
 

@@ -2,9 +2,9 @@ use crate::checks::Check;
 use crate::common::*;
 
 pub(crate) struct UnorderedKeyChecker {
-    template: String,
+    name: &'static str,
     keys: Vec<String>,
-    name: String,
+    template: &'static str,
 }
 
 impl UnorderedKeyChecker {
@@ -22,9 +22,9 @@ impl UnorderedKeyChecker {
 impl Default for UnorderedKeyChecker {
     fn default() -> Self {
         Self {
+            name: "UnorderedKey",
             keys: Vec::new(),
-            name: String::from("UnorderedKey"),
-            template: String::from("The {1} key should go before the {2} key"),
+            template: "The {1} key should go before the {2} key",
         }
     }
 }
@@ -46,6 +46,10 @@ impl Check for UnorderedKeyChecker {
         }
 
         None
+    }
+
+    fn name(&self) -> &str {
+        self.name
     }
 }
 

@@ -30,6 +30,10 @@ impl Check for IncorrectDelimiterChecker {
 
         None
     }
+
+    fn name(&self) -> &str {
+        self.name
+    }
 }
 
 #[cfg(test)]

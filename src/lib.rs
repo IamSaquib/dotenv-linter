@@ -35,6 +35,15 @@ fn get_args(current_dir: &OsStr) -> clap::ArgMatches {
                 .multiple(true)
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("skip")
+                .short("s")
+                .long("skip")
+                .value_name("CHECK_NAME")
+                .help("Skip some checks")
+                .multiple(true)
+                .takes_value(true),
+        )
         .get_matches()
 }
 
@@ -49,8 +58,13 @@ pub fn run() -> Result<Vec<Warning>, Box<dyn Error>> {
 
     let args = get_args(current_dir);
 
-    let mut paths: Vec<PathBuf> = vec![];
-    let mut files: Vec<FileEntry> = vec![];
+    let mut paths: Vec<PathBuf> = Vec::new();
+    let mut files: Vec<FileEntry> = Vec::new();
+    let mut skip_checks: Vec<&str> = Vec::new();
+
+    if let Some(skip) = args.values_of("skip") {
+        skip_checks = skip.collect();
+    }
 
     if let Some(inputs) = args.values_of("input") {
         paths = inputs
@@ -123,7 +137,7 @@ pub fn run() -> Result<Vec<Warning>, Box<dyn Error>> {
             })
         }
 
-        let result = checks::run(lines);
+        let result = checks::run(lines, &skip_checks);
         warnings.extend(result);
     }
 
